@@ -4,62 +4,37 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
 const userService = require("./user-service.js");
-
 const jwt = require('jsonwebtoken');
-const passport = require("passport")
-
-const HTTP_PORT = process.env.PORT || 8080;
+const passport = require('passport');
+const passportJWT = require('passport-jwt');
 
 app.use(express.json());
 app.use(cors());
-app.use(passport.initialize());
+const HTTP_PORT = process.env.PORT || 8080;
 
 
-app.use(passport.initialize());
-
-// JSON Web Token Setup
 let ExtractJwt = passportJWT.ExtractJwt;
 let JwtStrategy = passportJWT.Strategy;
 
-// Configure its options
 let jwtOptions = {};
 jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme('jwt');
-
-// IMPORTANT - this secret should be a long, unguessable string
-// (ideally stored in a "protected storage" area on the web server).
-// We suggest that you generate a random 50-character string
-// using the following online tool:
-// https://lastpass.com/generatepassword.php
-
 jwtOptions.secretOrKey = process.env.JWT_SECRET;
 
 let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
   console.log('payload received', jwt_payload);
 
   if (jwt_payload) {
-    // The following will ensure that all routes using
-    // passport.authenticate have a req.user._id, req.user.userName, req.user.fullName & req.user.role values
-    // that matches the request payload data
     next(null, {
       _id: jwt_payload._id,
       userName: jwt_payload.userName,
-      //fullName: jwt_payload.fullName,
-      //role: jwt_payload.role,
     });
   } else {
     next(null, false);
   }
 });
 
-// tell passport to use our "strategy"
 passport.use(strategy);
-
-// add passport as application-level middleware
 app.use(passport.initialize());
-
-app.use(express.json());
-app.use(cors());
-
 
 app.post("/api/user/register",passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.registerUser(req.body)
