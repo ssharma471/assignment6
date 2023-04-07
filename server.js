@@ -36,8 +36,9 @@ let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
 passport.use(strategy);
 app.use(passport.initialize());
 
-app.post("/api/user/register",passport.authenticate('jwt', { session: false }), (req, res) => {
+app.post("/api/user/register",(req, res) => {
     userService.registerUser(req.body)
+    console.log("HELLO")
     .then((msg) => {
         res.json({ "message": msg });
     }).catch((msg) => {
@@ -45,7 +46,7 @@ app.post("/api/user/register",passport.authenticate('jwt', { session: false }), 
     });
 });
 
-app.post("/api/user/login",passport.authenticate('jwt', { session: false }), (req, res) => {
+app.post("/api/user/login", (req, res) => {
     userService.checkUser(req.body)
       .then((user) => {
         const payload = {
